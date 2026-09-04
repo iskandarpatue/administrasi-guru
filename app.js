@@ -2,33 +2,30 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-storage.js";
+// Catatan: Impor firebase-storage sudah dihapus karena tidak dibutuhkan lagi.
 
 // ==========================================
 // 1. GANTI BAGIAN INI DENGAN CONFIG FIREBASE ANDA
 // ==========================================
 const firebaseConfig = {
-  apiKey: "AIzaSyCkKwGoWQFUmP0BUlSdQPY7Esscm6N82Hk",
-  authDomain: "administrasi-guru-sma.firebaseapp.com",
-  projectId: "administrasi-guru-sma",
-  storageBucket: "administrasi-guru-sma.firebasestorage.app",
-  messagingSenderId: "921439707926",
-  appId: "1:921439707926:web:e484ef576f3bf553c46637",
-  measurementId: "G-HPXZM13EMP"
+  apiKey: "API_KEY_ANDA",
+  authDomain: "PROYEK_ANDA.firebaseapp.com",
+  projectId: "PROYEK_ANDA",
+  storageBucket: "PROYEK_ANDA.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
 };
 
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 // ==========================================
 // 2. LOGIKA AUTENTIKASI (LOGIN & LOGOUT)
 // ==========================================
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // Jika User sudah Login
         if(document.getElementById("loginSection")) {
             document.getElementById("loginSection").classList.add("hidden");
             document.getElementById("dashboardSection").classList.remove("hidden");
@@ -37,18 +34,15 @@ onAuthStateChanged(auth, (user) => {
         if(document.getElementById("kontenJurnal")) document.getElementById("kontenJurnal").classList.remove("hidden");
         if(document.getElementById("kontenPerangkat")) document.getElementById("kontenPerangkat").classList.remove("hidden");
         
-        // Panggil fungsi muat data jika ada di halaman tersebut
         if(document.getElementById("tabelJurnalData")) muatJurnal();
         if(document.getElementById("listPerangkat")) muatPerangkat();
     } else {
-        // Jika Belum Login
         if(!window.location.pathname.endsWith("index.html") && window.location.pathname !== "/") {
-            window.location.href = "index.html"; // Lempar kembali ke halaman login
+            window.location.href = "index.html";
         }
     }
 });
 
-// Proses Form Login
 const formLogin = document.getElementById("formLogin");
 if(formLogin) {
     formLogin.addEventListener("submit", (e) => {
@@ -62,7 +56,6 @@ if(formLogin) {
     });
 }
 
-// Proses Logout
 const btnLogout = document.getElementById("btnLogout");
 if(btnLogout) {
     btnLogout.addEventListener("click", () => {
@@ -91,7 +84,7 @@ if(formJurnal) {
             });
             alert("Jurnal berhasil disimpan!");
             formJurnal.reset();
-            muatJurnal(); // Refresh tabel
+            muatJurnal();
         } catch (error) {
             alert("Gagal menyimpan data: " + error.message);
         }
@@ -103,7 +96,6 @@ async function muatJurnal() {
     const tabelBody = document.getElementById("tabelJurnalData");
     tabelBody.innerHTML = "<tr><td colspan='4' class='text-center'>Memuat data...</td></tr>";
     
-    // Ambil data diurutkan berdasarkan waktu terbaru
     const q = query(collection(db, "jurnal_mengajar"), orderBy("tanggal", "desc"));
     const querySnapshot = await getDocs(q);
     
@@ -122,44 +114,35 @@ async function muatJurnal() {
 }
 
 // ==========================================
-// 4. LOGIKA PERANGKAT PEMBELAJARAN (FIREBASE STORAGE)
+// 4. LOGIKA PERANGKAT PEMBELAJARAN (LINK GOOGLE DRIVE)
 // ==========================================
 const formPerangkat = document.getElementById("formPerangkat");
 if(formPerangkat) {
     formPerangkat.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const file = document.getElementById("fileInput").files[0];
         const namaDokumen = document.getElementById("namaFile").value;
+        const linkDrive = document.getElementById("linkDrive").value;
         const btnUpload = document.getElementById("btnUploadFile");
         
-        if(!file) return alert("Pilih file terlebih dahulu!");
-        
-        btnUpload.innerText = "Mengupload...";
+        btnUpload.innerText = "Menyimpan...";
         btnUpload.disabled = true;
 
         try {
-            // Upload ke Firebase Storage
-            const storageRef = ref(storage, 'perangkat/' + file.name);
-            await uploadBytes(storageRef, file);
-            
-            // Dapatkan URL Download URL
-            const downloadURL = await getDownloadURL(storageRef);
-            
-            // Simpan info file (Nama & Link) ke Firestore Database agar bisa di-list
+            // Hanya menyimpan teks Link URL ke Database Firestore
             await addDoc(collection(db, "arsip_perangkat"), {
                 nama: namaDokumen,
-                url: downloadURL,
+                url: linkDrive,
                 timestamp: serverTimestamp()
             });
             
-            alert("File berhasil diupload!");
+            alert("Data perangkat berhasil ditambahkan!");
             formPerangkat.reset();
-            muatPerangkat(); // Refresh daftar file
+            muatPerangkat();
         } catch (error) {
-            alert("Gagal upload: " + error.message);
+            alert("Gagal menyimpan data: " + error.message);
         }
         
-        btnUpload.innerText = "Upload File";
+        btnUpload.innerText = "Simpan Data";
         btnUpload.disabled = false;
     });
 }
@@ -177,7 +160,7 @@ async function muatPerangkat() {
         listGrup.innerHTML += `
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 ${data.nama}
-                <a href="${data.url}" target="_blank" class="btn btn-sm btn-outline-success">Lihat / Download</a>
+                <a href="${data.url}" target="_blank" class="btn btn-sm btn-outline-success">Buka Dokumen</a>
             </li>
         `;
     });
