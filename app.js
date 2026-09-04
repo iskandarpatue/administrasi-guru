@@ -67,7 +67,7 @@ if(btnLogout) {
 }
 
 // ==========================================
-// 3. LOGIKA JURNAL MENGAJAR (FIRESTORE DATABASE)
+=== REVISI app.js ===
 // ==========================================
 const formJurnal = document.getElementById("formJurnal");
 if(formJurnal) {
