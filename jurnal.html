@@ -33,18 +33,39 @@
                                 <label class="form-label">Kelas</label>
                                 <select class="form-select" id="jurnalKelas" required>
                                     <option value="">Pilih Kelas...</option>
-                                    <option value="X">Kelas X</option>
-                                    <option value="XI">Kelas XI</option>
-                                    <option value="XII">Kelas XII</option>
+                                    <option value="X - A">X - A</option>
+                                    <option value="X - B">X - B</option>
+                                    <option value="XI">XI</option>
+                                    <option value="XII">XII</option>
                                 </select>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label">Materi Pokok</label>
+                                <label class="form-label">Mata Pelajaran</label>
+                                <select class="form-select" id="jurnalMapel" required>
+                                    <option value="">Pilih Mata Pelajaran...</option>
+                                    <option value="Fisika">Fisika</option>
+                                    <option value="Informatika">Informatika</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Tujuan Pembelajaran/Materi Pokok</label>
                                 <input type="text" class="form-control" id="jurnalMateri" placeholder="Cth: Gerak Dua Dimensi" required>
                             </div>
-                            <div class="mb-3">
+                            <div class="mb-2">
                                 <label class="form-label">Siswa Absen/Keterangan</label>
                                 <textarea class="form-control" id="jurnalKeterangan" rows="2" placeholder="Nihil, atau sebutkan nama siswa..."></textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Kegiatan Pembelajaran</label>
+                                <textarea class="form-control" id="jurnalKegiatan" rows="2" placeholder="Jelaskan aktivitas belajar yang dilakukan..."></textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Permasalahan dan Keterangan</label>
+                                <textarea class="form-control" id="jurnalMasalah" rows="2" placeholder="Catat kendala yang terjadi di kelas..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Rencana Tindak Lanjut</label>
+                                <textarea class="form-control" id="jurnalTindakLanjut" rows="2" placeholder="Langkah perbaikan ke depannya..."></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary w-100" id="btnSimpanJurnal">Simpan Jurnal</button>
                         </form>
@@ -58,13 +79,17 @@
                     <div class="card-body">
                         <h5 class="mb-3">Rekap Jurnal Mengajar</h5>
                         <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
+                            <table class="table table-bordered table-striped text-sm">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Tanggal</th>
                                         <th>Kelas</th>
-                                        <th>Materi</th>
-                                        <th>Keterangan</th>
+                                        <th>Mapel</th>
+                                        <th>Materi Pokok</th>
+                                        <th>Siswa Absen</th>
+                                        <th>Kegiatan Pembelajaran</th>
+                                        <th>Permasalahan</th>
+                                        <th>Rencana Tindak Lanjut</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tabelJurnalData">
@@ -81,3 +106,64 @@
     <script type="module" src="app.js"></script>
 </body>
 </html>
+
+
+=== REVISI app.js (Ganti Hanya Bagian Jurnal) ===
+
+// app.js (Bagian Jurnal Mengajar Saja)
+
+// ==========================================
+// 3. LOGIKA JURNAL MENGAJAR (FIRESTORE DATABASE)
+// ==========================================
+const formJurnal = document.getElementById("formJurnal");
+if(formJurnal) {
+    formJurnal.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        document.getElementById("btnSimpanJurnal").innerText = "Menyimpan...";
+        
+        try {
+            await addDoc(collection(db, "jurnal_mengajar"), {
+                tanggal: document.getElementById("jurnalTanggal").value,
+                kelas: document.getElementById("jurnalKelas").value,
+                mapel: document.getElementById("jurnalMapel").value,
+                materi: document.getElementById("jurnalMateri").value,
+                keterangan: document.getElementById("jurnalKeterangan").value,
+                kegiatan: document.getElementById("jurnalKegiatan").value,
+                masalah: document.getElementById("jurnalMasalah").value,
+                tindakLanjut: document.getElementById("jurnalTindakLanjut").value,
+                timestamp: serverTimestamp()
+            });
+            alert("Jurnal berhasil disimpan!");
+            formJurnal.reset();
+            muatJurnal();
+        } catch (error) {
+            alert("Gagal menyimpan data: " + error.message);
+        }
+        document.getElementById("btnSimpanJurnal").innerText = "Simpan Jurnal";
+    });
+}
+
+async function muatJurnal() {
+    const tabelBody = document.getElementById("tabelJurnalData");
+    tabelBody.innerHTML = "<tr><td colspan='8' class='text-center'>Memuat data...</td></tr>";
+    
+    const q = query(collection(db, "jurnal_mengajar"), orderBy("tanggal", "desc"));
+    const querySnapshot = await getDocs(q);
+    
+    tabelBody.innerHTML = "";
+    querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        tabelBody.innerHTML += `
+            <tr>
+                <td>${data.tanggal || "-"}</td>
+                <td>${data.kelas || "-"}</td>
+                <td>${data.mapel || "-"}</td>
+                <td>${data.materi || "-"}</td>
+                <td>${data.keterangan || "-"}</td>
+                <td>${data.kegiatan || "-"}</td>
+                <td>${data.masalah || "-"}</td>
+                <td>${data.tindakLanjut || "-"}</td>
+            </tr>
+        `;
+    });
+}
