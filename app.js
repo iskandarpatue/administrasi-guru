@@ -10,12 +10,13 @@ import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimest
 // 1. GANTI BAGIAN INI DENGAN CONFIG FIREBASE ANDA
 // ==========================================
 const firebaseConfig = {
-  apiKey: "API_KEY_ANDA",
-  authDomain: "PROYEK_ANDA.firebaseapp.com",
-  projectId: "PROYEK_ANDA",
-  storageBucket: "PROYEK_ANDA.appspot.com",
-  messagingSenderId: "SENDER_ID",
-  appId: "APP_ID"
+  apiKey: "AIzaSyCkKwGoWQFUmP0BUlSdQPY7Esscm6N82Hk",
+  authDomain: "administrasi-guru-sma.firebaseapp.com",
+  projectId: "administrasi-guru-sma",
+  storageBucket: "administrasi-guru-sma.firebasestorage.app",
+  messagingSenderId: "921439707926",
+  appId: "1:921439707926:web:e484ef576f3bf553c46637",
+  measurementId: "G-HPXZM13EMP"
 };
 
 // Inisialisasi Firebase
