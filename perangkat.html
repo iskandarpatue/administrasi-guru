@@ -17,21 +17,22 @@
 
     <div class="container mt-4 hidden" id="kontenPerangkat">
         <div class="row">
-            <!-- Form Upload -->
+            <!-- Form Input Link -->
             <div class="col-md-4 mb-4">
                 <div class="card shadow-sm border-success">
                     <div class="card-body">
-                        <h5 class="mb-3">Upload File Baru</h5>
+                        <h5 class="mb-3">Tambah Perangkat Baru</h5>
                         <form id="formPerangkat">
                             <div class="mb-3">
                                 <label class="form-label">Nama Dokumen</label>
                                 <input type="text" class="form-control" id="namaFile" placeholder="Cth: Modul Ajar Fisika Sem 1" required>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Pilih File (PDF/DOCX/PPT)</label>
-                                <input type="file" class="form-control" id="fileInput" required>
+                                <label class="form-label">Link Google Drive</label>
+                                <input type="url" class="form-control" id="linkDrive" placeholder="Paste link Drive di sini..." required>
+                                <small class="text-muted">Pastikan akses link Drive sudah diatur ke 'Siapa saja yang memiliki link'.</small>
                             </div>
-                            <button type="submit" class="btn btn-success w-100" id="btnUploadFile">Upload File</button>
+                            <button type="submit" class="btn btn-success w-100" id="btnUploadFile">Simpan Data</button>
                         </form>
                     </div>
                 </div>
