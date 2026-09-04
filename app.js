@@ -1,20 +1,21 @@
-// app.js
+// ======================================================
+// app.js (KODE LENGKAP - SMAN 1 BATUDAA PANTAI)
+// ======================================================
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
-// Catatan: Impor firebase-storage sudah dihapus karena tidak dibutuhkan lagi.
 
 // ==========================================
 // 1. GANTI BAGIAN INI DENGAN CONFIG FIREBASE ANDA
 // ==========================================
 const firebaseConfig = {
-  apiKey: "AIzaSyCkKwGoWQFUmP0BUlSdQPY7Esscm6N82Hk",
-  authDomain: "administrasi-guru-sma.firebaseapp.com",
-  projectId: "administrasi-guru-sma",
-  storageBucket: "administrasi-guru-sma.firebasestorage.app",
-  messagingSenderId: "921439707926",
-  appId: "1:921439707926:web:e484ef576f3bf553c46637",
-  measurementId: "G-HPXZM13EMP"
+  apiKey: "API_KEY_ANDA",
+  authDomain: "PROYEK_ANDA.firebaseapp.com",
+  projectId: "PROYEK_ANDA",
+  storageBucket: "PROYEK_ANDA.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
 };
 
 // Inisialisasi Firebase
@@ -27,6 +28,7 @@ const db = getFirestore(app);
 // ==========================================
 onAuthStateChanged(auth, (user) => {
     if (user) {
+        // Jika User sudah Login, tampilkan dashboard & konten
         if(document.getElementById("loginSection")) {
             document.getElementById("loginSection").classList.add("hidden");
             document.getElementById("dashboardSection").classList.remove("hidden");
@@ -35,10 +37,12 @@ onAuthStateChanged(auth, (user) => {
         if(document.getElementById("kontenJurnal")) document.getElementById("kontenJurnal").classList.remove("hidden");
         if(document.getElementById("kontenPerangkat")) document.getElementById("kontenPerangkat").classList.remove("hidden");
         
+        // Panggil fungsi muat data jika tabelnya ada di halaman tersebut
         if(document.getElementById("tabelJurnalData")) muatJurnal();
         if(document.getElementById("listPerangkat")) muatPerangkat();
     } else {
-        if(!window.location.pathname.endsWith("index.html") && window.location.pathname !== "/") {
+        // Jika Belum Login, lempar kembali ke halaman index (login)
+        if(!window.location.pathname.endsWith("index.html") && window.location.pathname !== "/" && !window.location.pathname.endsWith("administrasi-guru/")) {
             window.location.href = "index.html";
         }
     }
@@ -53,7 +57,7 @@ if(formLogin) {
         
         signInWithEmailAndPassword(auth, email, pass)
             .then(() => alert("Login Berhasil!"))
-            .catch((error) => alert("Login Gagal: " + error.message));
+            .catch((error) => alert("Login Gagal, periksa email/password Anda. " + error.message));
     });
 }
 
@@ -67,7 +71,7 @@ if(btnLogout) {
 }
 
 // ==========================================
-// 3. LOGIKA JURNAL MENGAJAR (FIRESTORE DATABASE)
+// 3. LOGIKA JURNAL MENGAJAR (VERSI REVISI LENGKAP)
 // ==========================================
 const formJurnal = document.getElementById("formJurnal");
 if(formJurnal) {
@@ -91,7 +95,7 @@ if(formJurnal) {
             formJurnal.reset();
             muatJurnal();
         } catch (error) {
-            alert("Gagal menyimpan data: " + error.message);
+            alert("Gagal menyimpan data jurnal: " + error.message);
         }
         document.getElementById("btnSimpanJurnal").innerText = "Simpan Jurnal";
     });
@@ -121,51 +125,6 @@ async function muatJurnal() {
         `;
     });
 }
-// ==========================================
-const formJurnal = document.getElementById("formJurnal");
-if(formJurnal) {
-    formJurnal.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        document.getElementById("btnSimpanJurnal").innerText = "Menyimpan...";
-        
-        try {
-            await addDoc(collection(db, "jurnal_mengajar"), {
-                tanggal: document.getElementById("jurnalTanggal").value,
-                kelas: document.getElementById("jurnalKelas").value,
-                materi: document.getElementById("jurnalMateri").value,
-                keterangan: document.getElementById("jurnalKeterangan").value,
-                timestamp: serverTimestamp()
-            });
-            alert("Jurnal berhasil disimpan!");
-            formJurnal.reset();
-            muatJurnal();
-        } catch (error) {
-            alert("Gagal menyimpan data: " + error.message);
-        }
-        document.getElementById("btnSimpanJurnal").innerText = "Simpan Jurnal";
-    });
-}
-
-async function muatJurnal() {
-    const tabelBody = document.getElementById("tabelJurnalData");
-    tabelBody.innerHTML = "<tr><td colspan='4' class='text-center'>Memuat data...</td></tr>";
-    
-    const q = query(collection(db, "jurnal_mengajar"), orderBy("tanggal", "desc"));
-    const querySnapshot = await getDocs(q);
-    
-    tabelBody.innerHTML = "";
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        tabelBody.innerHTML += `
-            <tr>
-                <td>${data.tanggal}</td>
-                <td>${data.kelas}</td>
-                <td>${data.materi}</td>
-                <td>${data.keterangan || "-"}</td>
-            </tr>
-        `;
-    });
-}
 
 // ==========================================
 // 4. LOGIKA PERANGKAT PEMBELAJARAN (LINK GOOGLE DRIVE)
@@ -182,7 +141,6 @@ if(formPerangkat) {
         btnUpload.disabled = true;
 
         try {
-            // Hanya menyimpan teks Link URL ke Database Firestore
             await addDoc(collection(db, "arsip_perangkat"), {
                 nama: namaDokumen,
                 url: linkDrive,
@@ -193,7 +151,7 @@ if(formPerangkat) {
             formPerangkat.reset();
             muatPerangkat();
         } catch (error) {
-            alert("Gagal menyimpan data: " + error.message);
+            alert("Gagal menyimpan data perangkat: " + error.message);
         }
         
         btnUpload.innerText = "Simpan Data";
@@ -203,7 +161,7 @@ if(formPerangkat) {
 
 async function muatPerangkat() {
     const listGrup = document.getElementById("listPerangkat");
-    listGrup.innerHTML = "<li class='list-group-item'>Memuat file...</li>";
+    listGrup.innerHTML = "<li class='list-group-item'>Memuat data...</li>";
     
     const q = query(collection(db, "arsip_perangkat"), orderBy("timestamp", "desc"));
     const querySnapshot = await getDocs(q);
