@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Guru - SMAN 1 Batudaa Pantai</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">Admin Guru | Iskandar Patue</a>
+            <button class="btn btn-danger btn-sm hidden" id="btnLogout">Keluar</button>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <!-- BAGIAN LOGIN (Tampil jika belum login) -->
+        <div id="loginSection" class="row justify-content-center">
+            <div class="col-md-5">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <h4 class="text-center mb-4">Login Pegawai</h4>
+                        <form id="formLogin">
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="emailLogin" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input type="password" class="form-control" id="passLogin" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Masuk</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BAGIAN DASHBOARD (Tampil jika sudah login) -->
+        <div id="dashboardSection" class="hidden">
+            <h3 class="mb-4">Selamat Datang, Guru Hebat!</h3>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100 border-primary border-top border-4">
+                        <div class="card-body text-center p-4">
+                            <h5 class="card-title">Jurnal Mengajar</h5>
+                            <p class="card-text text-muted">Catat presensi dan materi harian kelas Anda.</p>
+                            <a href="jurnal.html" class="btn btn-primary w-100">Buka Jurnal</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100 border-success border-top border-4">
+                        <div class="card-body text-center p-4">
+                            <h5 class="card-title">Perangkat Pembelajaran</h5>
+                            <p class="card-text text-muted">Upload & arsipkan Modul, RPP, dan LKPD.</p>
+                            <a href="perangkat.html" class="btn btn-success w-100">Buka Perangkat</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hubungkan Firebase (Type Module sangat penting) -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
