@@ -188,6 +188,46 @@ const filterJenisPenilaian = document.getElementById("filterJenisPenilaian");
 const tpInputs = document.querySelectorAll(".tp-input");
 const grupCatatan = document.getElementById("grupCatatan");
 
+// --- DATABASE SISWA OTOMATIS ---
+const dataMurid = {
+    "XI (Fisika)": [{"nama": "Abel Pratama Katili", "gender": "P"}, {"nama": "Adeliani Putri R. Agu", "gender": "P"}, {"nama": "Anastasya Said", "gender": "P"}, {"nama": "Andika Pratama Latoini", "gender": "L"}, {"nama": "Cindra H. Mohamad", "gender": "P"}, {"nama": "Dea Ananda Nusi", "gender": "P"}, {"nama": "Dhea Ananda Putri Sadapu", "gender": "P"}, {"nama": "Dimas Saputra R. Antu", "gender": "L"}, {"nama": "Dwi Rangga B. Yahya", "gender": "L"}, {"nama": "Elsawati M. Alinti", "gender": "P"}, {"nama": "Farel Mahmud", "gender": "L"}, {"nama": "Fatmah Igirisa", "gender": "P"}, {"nama": "Fauzan R. Rahman", "gender": "L"}, {"nama": "Grelis R. Sapiun", "gender": "P"}, {"nama": "Hamzah R. Ibrahim", "gender": "L"}, {"nama": "Ismail H. Mantali", "gender": "L"}, {"nama": "Ismail Usman", "gender": "L"}, {"nama": "Moh. Riski Ahmad", "gender": "L"}, {"nama": "Moh. Rivaldo Arbie", "gender": "L"}, {"nama": "Mohamad Aslammun R. Hemeto", "gender": "L"}, {"nama": "Mohammad Azwar Ahmad", "gender": "L"}, {"nama": "Muhamad Chaidar Ali", "gender": "L"}, {"nama": "Muhamad Syahrul Thalib", "gender": "L"}, {"nama": "Muhamad Husin", "gender": "L"}, {"nama": "Nabila Pumulo", "gender": "P"}, {"nama": "Nikita Umar", "gender": "P"}, {"nama": "Nuraini A. Yusuf", "gender": "P"}, {"nama": "Parel C. Pasilia", "gender": "L"}, {"nama": "Rofik Adrianto Katili", "gender": "L"}, {"nama": "Silva Talib", "gender": "P"}, {"nama": "Sulistia Y. Kaharu", "gender": "P"}, {"nama": "Syahlan Zulkifli Mamu", "gender": "L"}, {"nama": "Syahril Naha", "gender": "L"}, {"nama": "Ummi Salam M. Toka", "gender": "P"}, {"nama": "Valentino E. Karim", "gender": "L"}], 
+    "XII (Fisika)": [{"nama": "Afdan R. Dami", "gender": "L"}, {"nama": "Almelia Nasim", "gender": "P"}, {"nama": "Aprilia Dwi Putri Arbie", "gender": "P"}, {"nama": "Arjun Ishak", "gender": "L"}, {"nama": "Dimas Prasetyo Hasim", "gender": "L"}, {"nama": "Elsa S. Gani", "gender": "P"}, {"nama": "Falen A. Djuko", "gender": "P"}, {"nama": "Gabriela S. Rahman", "gender": "P"}, {"nama": "Imel Sunge", "gender": "P"}, {"nama": "Irma A. Hamsia", "gender": "P"}, {"nama": "Mohamad Andika A. Gani", "gender": "L"}, {"nama": "Mohamad Rafki R. Nani", "gender": "L"}, {"nama": "Mohamad Riskiaditya Abdullah", "gender": "L"}, {"nama": "Nelva Anindhita H. Adam", "gender": "P"}, {"nama": "Nurhiya J. Katili", "gender": "P"}, {"nama": "Putri Anggun Ma'ruf", "gender": "P"}, {"nama": "Refli I. Yunus", "gender": "L"}, {"nama": "Rehan A. Salilama", "gender": "L"}, {"nama": "Rendi Husain", "gender": "L"}, {"nama": "Salwa Januriska Dunggio", "gender": "P"}, {"nama": "Syahril Aimanullah A. Singgu", "gender": "L"}, {"nama": "Tiyas Yolanda S. Isima", "gender": "P"}], 
+    "X - A (Informatika)": [{"nama": "Abdul Fadil Keku", "gender": "L"}, {"nama": "Adelia Y. Yunus", "gender": "P"}, {"nama": "Ain R. Dami", "gender": "P"}, {"nama": "Allvaro Anugrah F. Rahim", "gender": "L"}, {"nama": "Aprilia J. Igirisa", "gender": "P"}, {"nama": "Chairul Royyan Irwan B. Tiro", "gender": "L"}, {"nama": "Kevin Pratama Akuba", "gender": "L"}, {"nama": "Nabil Adam", "gender": "L"}, {"nama": "Meyke Siswati G. Mohamad", "gender": "P"}, {"nama": "Moh. Fauzan M. Halid", "gender": "L"}, {"nama": "Moh. Rifky Adytia Napu", "gender": "L"}, {"nama": "Nurlela H. Umar", "gender": "P"}, {"nama": "Nurmawati G. Mohamad", "gender": "P"}, {"nama": "Rifki S. Salam", "gender": "L"}, {"nama": "Shaparil R. Dami", "gender": "L"}, {"nama": "Shelan M. Alinti", "gender": "P"}, {"nama": "Siti Nur Alisa H. Berahim", "gender": "P"}, {"nama": "Siti Sabrina J. Ahmad", "gender": "P"}, {"nama": "Tesya L. Aliasa", "gender": "P"}, {"nama": "Tiyo Prasetyo Hantuli", "gender": "L"}], 
+    "X - B (Informatika)": [{"nama": "Aca S. Napi", "gender": "P"}, {"nama": "Alham Hadji", "gender": "L"}, {"nama": "Alya Usman", "gender": "P"}, {"nama": "Aryandi R. Yunus", "gender": "L"}, {"nama": "Asraf Jailani P. Hasan", "gender": "L"}, {"nama": "Ayusetyaningsih R. Ismail", "gender": "P"}, {"nama": "Fadil Rahman Pateda", "gender": "L"}, {"nama": "Jihan Akuba", "gender": "L"}, {"nama": "Mohamad Atfal A. Ismail", "gender": "L"}, {"nama": "Mohamad Farhan Pontoh", "gender": "L"}, {"nama": "Nada N. Aminu", "gender": "P"}, {"nama": "Najwa Y. Yunus", "gender": "P"}, {"nama": "Nurvita D. Husain", "gender": "P"}, {"nama": "Refan R. Tantu", "gender": "L"}, {"nama": "Taufik Y. Rahman", "gender": "L"}, {"nama": "Triyanto Kutei", "gender": "L"}, {"nama": "Shelin M. Alinti", "gender": "P"}, {"nama": "Sri Susanti U. Napu", "gender": "P"}, {"nama": "Suci Ibrahim", "gender": "P"}, {"nama": "Yusni Ma'ruf", "gender": "P"}]
+};
+
+const nilaiKelas = document.getElementById("nilaiKelas");
+const nilaiNama = document.getElementById("nilaiNama");
+const nilaiGender = document.getElementById("nilaiGender");
+
+// Event: Saat kelas dipilih, daftar nama otomatis muncul
+if(nilaiKelas && nilaiNama) {
+    nilaiKelas.addEventListener("change", (e) => {
+        const kelasPilihan = e.target.value;
+        nilaiNama.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
+        nilaiGender.value = "";
+        
+        if(kelasPilihan && dataMurid[kelasPilihan]) {
+            dataMurid[kelasPilihan].forEach((siswa, index) => {
+                nilaiNama.innerHTML += `<option value="${index}">${siswa.nama}</option>`;
+            });
+        } else {
+            nilaiNama.innerHTML = '<option value="">-- Pilih Kelas Dulu --</option>';
+        }
+    });
+
+    // Event: Saat nama dipilih, L/P otomatis terisi
+    nilaiNama.addEventListener("change", (e) => {
+        const kelasPilihan = nilaiKelas.value;
+        const indexSiswa = e.target.value;
+        if(indexSiswa !== "") {
+            nilaiGender.value = dataMurid[kelasPilihan][indexSiswa].gender;
+        } else {
+            nilaiGender.value = "";
+        }
+    });
+}
+// --- AKHIR DATABASE SISWA ---
 if(jenisPenilaian) {
     jenisPenilaian.addEventListener("change", (e) => {
         if(e.target.value === "Sumatif") {
@@ -212,7 +252,7 @@ if(formPenilaian) {
         const jenis = jenisPenilaian.value;
         const data = {
             kelas: document.getElementById("nilaiKelas").value,
-            nama: document.getElementById("nilaiNama").value,
+            nama: nilaiNama.options[nilaiNama.selectedIndex].text,
             gender: document.getElementById("nilaiGender").value,
             jenis: jenis,
             tp1: document.getElementById("tp1").value,
