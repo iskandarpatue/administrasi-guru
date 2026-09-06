@@ -178,3 +178,138 @@ async function muatPerangkat() {
         `;
     });
 }
+// ==========================================
+// 5. LOGIKA PENILAIAN (FIRESTORE)
+// ==========================================
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+
+// Amankan Halaman & Otomatis Muat Data
+onAuthStateChanged(getAuth(), (user) => {
+    if (user && document.getElementById("kontenPenilaian")) {
+        document.getElementById("kontenPenilaian").classList.remove("hidden");
+        muatPenilaian();
+    }
+});
+
+const formPenilaian = document.getElementById("formPenilaian");
+const jenisPenilaian = document.getElementById("jenisPenilaian");
+const filterJenisPenilaian = document.getElementById("filterJenisPenilaian");
+const tpInputs = document.querySelectorAll(".tp-input");
+const grupCatatan = document.getElementById("grupCatatan");
+
+// Interaksi Ubah Mode Formatif/Sumatif
+if(jenisPenilaian) {
+    jenisPenilaian.addEventListener("change", (e) => {
+        if(e.target.value === "Sumatif") {
+            tpInputs.forEach(input => { input.type = "number"; input.max = "100"; input.min = "0"; });
+            grupCatatan.classList.add("hidden");
+        } else {
+            tpInputs.forEach(input => { input.type = "text"; input.removeAttribute("max"); input.removeAttribute("min"); });
+            grupCatatan.classList.remove("hidden");
+        }
+    });
+}
+
+// Filter Tabel
+if(filterJenisPenilaian) {
+    filterJenisPenilaian.addEventListener("change", muatPenilaian);
+}
+
+// Simpan Data
+if(formPenilaian) {
+    formPenilaian.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        document.getElementById("btnSimpanNilai").innerText = "Menyimpan...";
+        
+        const jenis = jenisPenilaian.value;
+        const data = {
+            kelas: document.getElementById("nilaiKelas").value,
+            nama: document.getElementById("nilaiNama").value,
+            gender: document.getElementById("nilaiGender").value,
+            jenis: jenis,
+            tp1: document.getElementById("tp1").value,
+            tp2: document.getElementById("tp2").value,
+            tp3: document.getElementById("tp3").value,
+            tp4: document.getElementById("tp4").value,
+            tp5: document.getElementById("tp5").value,
+            tp6: document.getElementById("tp6").value,
+            tp7: document.getElementById("tp7").value,
+            timestamp: new Date()
+        };
+
+        if(jenis === "Formatif") {
+            let terkumpul = 0;
+            tpInputs.forEach(input => { if(input.value.trim() !== "") terkumpul++; });
+            data.jumlahTerkumpul = terkumpul;
+            data.catatan = document.getElementById("nilaiCatatan").value;
+        } else {
+            let total = 0, count = 0;
+            tpInputs.forEach(input => { 
+                let val = parseFloat(input.value);
+                if(!isNaN(val)) { total += val; count++; } 
+            });
+            data.rataRata = count > 0 ? (total / count).toFixed(1) : 0; 
+        }
+
+        try {
+            // Karena kita butuh addDoc dan collection, kita impor manual jika belum ada
+            const { getFirestore, collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js");
+            const db = getFirestore();
+            await addDoc(collection(db, "penilaian_siswa"), data);
+            
+            alert("Data Penilaian berhasil disimpan!");
+            formPenilaian.reset();
+            if(jenis === "Sumatif") grupCatatan.classList.add("hidden");
+            muatPenilaian();
+        } catch (error) {
+            alert("Gagal menyimpan data: " + error.message);
+        }
+        document.getElementById("btnSimpanNilai").innerText = "Simpan Penilaian";
+    });
+}
+
+// Muat Tabel Data
+async function muatPenilaian() {
+    const tabelBody = document.getElementById("tabelNilaiData");
+    const headerTabel = document.getElementById("headerTabelNilai");
+    if(!tabelBody) return;
+    
+    const jenisDitampilkan = document.getElementById("filterJenisPenilaian").value;
+    
+    // Ubah Header Sesuai Mode
+    if(jenisDitampilkan === "Formatif") {
+        headerTabel.innerHTML = `<tr><th>Nama</th><th>L/P</th><th>Kelas</th><th>TP1</th><th>TP2</th><th>TP3</th><th>TP4</th><th>TP5</th><th>TP6</th><th>TP7</th><th>Jml</th><th>Catatan</th></tr>`;
+    } else {
+        headerTabel.innerHTML = `<tr><th>Nama</th><th>L/P</th><th>Kelas</th><th>TP1</th><th>TP2</th><th>TP3</th><th>TP4</th><th>TP5</th><th>TP6</th><th>TP7</th><th>Rata-rata</th></tr>`;
+    }
+
+    tabelBody.innerHTML = `<tr><td colspan='12' class='text-center'>Memuat data...</td></tr>`;
+    
+    try {
+        const { getFirestore, collection, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js");
+        const db = getFirestore();
+        const q = query(collection(db, "penilaian_siswa"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        
+        tabelBody.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+            const d = doc.data();
+            if(d.jenis === jenisDitampilkan) {
+                let rowHTML = `<td>${d.nama}</td><td>${d.gender}</td><td><small>${d.kelas}</small></td>`;
+                rowHTML += `<td>${d.tp1||"-"}</td><td>${d.tp2||"-"}</td><td>${d.tp3||"-"}</td><td>${d.tp4||"-"}</td><td>${d.tp5||"-"}</td><td>${d.tp6||"-"}</td><td>${d.tp7||"-"}</td>`;
+                
+                if(jenisDitampilkan === "Formatif") {
+                    rowHTML += `<td><b>${d.jumlahTerkumpul||0}</b></td><td><small>${d.catatan||"-"}</small></td>`;
+                } else {
+                    rowHTML += `<td><b class="text-primary">${d.rataRata||0}</b></td>`;
+                }
+                tabelBody.innerHTML += `<tr>${rowHTML}</tr>`;
+            }
+        });
+
+        if(tabelBody.innerHTML === "") tabelBody.innerHTML = `<tr><td colspan='12' class='text-center'>Belum ada data ${jenisDitampilkan}</td></tr>`;
+    } catch (error) {
+        tabelBody.innerHTML = `<tr><td colspan='12' class='text-center text-danger'>Gagal memuat: ${error.message}</td></tr>`;
+    }
+}
