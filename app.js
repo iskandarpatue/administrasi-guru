@@ -1,10 +1,11 @@
 // ======================================================
-// app.js (KODE LENGKAP - JURNAL, PERANGKAT, & PENILAIAN)
+// app.js (KODE LENGKAP - JURNAL, PERANGKAT, & PENILAIAN DINAMIS)
 // ======================================================
 
+// Perhatikan ada tambahan doc, deleteDoc, dan updateDoc di baris ini
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js";
 
 // ==========================================
 // 1. GANTI BAGIAN INI DENGAN CONFIG FIREBASE ANDA
@@ -19,7 +20,6 @@ const firebaseConfig = {
   measurementId: "G-HPXZM13EMP"
 };
 
-// Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -54,7 +54,6 @@ if(formLogin) {
         e.preventDefault();
         const email = document.getElementById("emailLogin").value;
         const pass = document.getElementById("passLogin").value;
-        
         signInWithEmailAndPassword(auth, email, pass)
             .then(() => alert("Login Berhasil!"))
             .catch((error) => alert("Login Gagal: " + error.message));
@@ -64,9 +63,7 @@ if(formLogin) {
 const btnLogout = document.getElementById("btnLogout");
 if(btnLogout) {
     btnLogout.addEventListener("click", () => {
-        signOut(auth).then(() => {
-            window.location.href = "index.html";
-        });
+        signOut(auth).then(() => window.location.href = "index.html");
     });
 }
 
@@ -129,7 +126,7 @@ async function muatJurnal() {
 }
 
 // ==========================================
-// 4. LOGIKA PERANGKAT PEMBELAJARAN (DRIVE)
+// 4. LOGIKA PERANGKAT PEMBELAJARAN
 // ==========================================
 const formPerangkat = document.getElementById("formPerangkat");
 if(formPerangkat) {
@@ -185,10 +182,11 @@ async function muatPerangkat() {
 const formPenilaian = document.getElementById("formPenilaian");
 const jenisPenilaian = document.getElementById("jenisPenilaian");
 const filterJenisPenilaian = document.getElementById("filterJenisPenilaian");
-const tpInputs = document.querySelectorAll(".tp-input");
+const inputJumlahTP = document.getElementById("jumlahTP");
+const wadahTP = document.getElementById("wadahTP");
 const grupCatatan = document.getElementById("grupCatatan");
 
-// --- DATABASE SISWA OTOMATIS ---
+// --- DATABASE SISWA ---
 const dataMurid = {
     "XI (Fisika)": [{"nama": "Abel Pratama Katili", "gender": "P"}, {"nama": "Adeliani Putri R. Agu", "gender": "P"}, {"nama": "Anastasya Said", "gender": "P"}, {"nama": "Andika Pratama Latoini", "gender": "L"}, {"nama": "Cindra H. Mohamad", "gender": "P"}, {"nama": "Dea Ananda Nusi", "gender": "P"}, {"nama": "Dhea Ananda Putri Sadapu", "gender": "P"}, {"nama": "Dimas Saputra R. Antu", "gender": "L"}, {"nama": "Dwi Rangga B. Yahya", "gender": "L"}, {"nama": "Elsawati M. Alinti", "gender": "P"}, {"nama": "Farel Mahmud", "gender": "L"}, {"nama": "Fatmah Igirisa", "gender": "P"}, {"nama": "Fauzan R. Rahman", "gender": "L"}, {"nama": "Grelis R. Sapiun", "gender": "P"}, {"nama": "Hamzah R. Ibrahim", "gender": "L"}, {"nama": "Ismail H. Mantali", "gender": "L"}, {"nama": "Ismail Usman", "gender": "L"}, {"nama": "Moh. Riski Ahmad", "gender": "L"}, {"nama": "Moh. Rivaldo Arbie", "gender": "L"}, {"nama": "Mohamad Aslammun R. Hemeto", "gender": "L"}, {"nama": "Mohammad Azwar Ahmad", "gender": "L"}, {"nama": "Muhamad Chaidar Ali", "gender": "L"}, {"nama": "Muhamad Syahrul Thalib", "gender": "L"}, {"nama": "Muhamad Husin", "gender": "L"}, {"nama": "Nabila Pumulo", "gender": "P"}, {"nama": "Nikita Umar", "gender": "P"}, {"nama": "Nuraini A. Yusuf", "gender": "P"}, {"nama": "Parel C. Pasilia", "gender": "L"}, {"nama": "Rofik Adrianto Katili", "gender": "L"}, {"nama": "Silva Talib", "gender": "P"}, {"nama": "Sulistia Y. Kaharu", "gender": "P"}, {"nama": "Syahlan Zulkifli Mamu", "gender": "L"}, {"nama": "Syahril Naha", "gender": "L"}, {"nama": "Ummi Salam M. Toka", "gender": "P"}, {"nama": "Valentino E. Karim", "gender": "L"}], 
     "XII (Fisika)": [{"nama": "Afdan R. Dami", "gender": "L"}, {"nama": "Almelia Nasim", "gender": "P"}, {"nama": "Aprilia Dwi Putri Arbie", "gender": "P"}, {"nama": "Arjun Ishak", "gender": "L"}, {"nama": "Dimas Prasetyo Hasim", "gender": "L"}, {"nama": "Elsa S. Gani", "gender": "P"}, {"nama": "Falen A. Djuko", "gender": "P"}, {"nama": "Gabriela S. Rahman", "gender": "P"}, {"nama": "Imel Sunge", "gender": "P"}, {"nama": "Irma A. Hamsia", "gender": "P"}, {"nama": "Mohamad Andika A. Gani", "gender": "L"}, {"nama": "Mohamad Rafki R. Nani", "gender": "L"}, {"nama": "Mohamad Riskiaditya Abdullah", "gender": "L"}, {"nama": "Nelva Anindhita H. Adam", "gender": "P"}, {"nama": "Nurhiya J. Katili", "gender": "P"}, {"nama": "Putri Anggun Ma'ruf", "gender": "P"}, {"nama": "Refli I. Yunus", "gender": "L"}, {"nama": "Rehan A. Salilama", "gender": "L"}, {"nama": "Rendi Husain", "gender": "L"}, {"nama": "Salwa Januriska Dunggio", "gender": "P"}, {"nama": "Syahril Aimanullah A. Singgu", "gender": "L"}, {"nama": "Tiyas Yolanda S. Isima", "gender": "P"}], 
@@ -202,95 +200,126 @@ const nilaiGender = document.getElementById("nilaiGender");
 
 if(nilaiKelas && nilaiNama) {
     nilaiKelas.addEventListener("change", (e) => {
-        const kelasPilihan = e.target.value;
+        const kelas = e.target.value;
         nilaiNama.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
         if(nilaiGender) nilaiGender.value = "";
-        
-        if(kelasPilihan && dataMurid[kelasPilihan]) {
-            dataMurid[kelasPilihan].forEach((siswa, index) => {
-                nilaiNama.innerHTML += `<option value="${index}">${siswa.nama}</option>`;
+        if(kelas && dataMurid[kelas]) {
+            dataMurid[kelas].forEach((siswa, idx) => {
+                nilaiNama.innerHTML += `<option value="${idx}">${siswa.nama}</option>`;
             });
-        } else {
-            nilaiNama.innerHTML = '<option value="">-- Pilih Kelas Dulu --</option>';
         }
     });
 
     nilaiNama.addEventListener("change", (e) => {
-        const kelasPilihan = nilaiKelas.value;
-        const indexSiswa = e.target.value;
-        if(indexSiswa !== "" && nilaiGender) {
-            nilaiGender.value = dataMurid[kelasPilihan][indexSiswa].gender;
-        } else if(nilaiGender) {
-            nilaiGender.value = "";
+        const kelas = nilaiKelas.value;
+        const idx = e.target.value;
+        if(idx !== "" && nilaiGender) {
+            nilaiGender.value = dataMurid[kelas][idx].gender;
         }
     });
 }
-// --- AKHIR DATABASE SISWA ---
 
-if(jenisPenilaian) {
-    jenisPenilaian.addEventListener("change", (e) => {
-        if(e.target.value === "Sumatif") {
-            tpInputs.forEach(input => { input.type = "number"; input.max = "100"; input.min = "0"; });
-            grupCatatan.classList.add("hidden");
-        } else {
-            tpInputs.forEach(input => { input.type = "text"; input.removeAttribute("max"); input.removeAttribute("min"); });
-            grupCatatan.classList.remove("hidden");
-        }
-    });
+// --- FUNGSI RENDER INPUT TP DINAMIS ---
+function renderTPInputs() {
+    if(!wadahTP) return;
+    const jumlah = parseInt(inputJumlahTP.value) || 7;
+    const isSumatif = jenisPenilaian.value === "Sumatif";
+    wadahTP.innerHTML = "";
+    
+    for(let i=1; i<=jumlah; i++) {
+        const type = isSumatif ? "number" : "text";
+        const attrs = isSumatif ? 'max="100" min="0"' : '';
+        wadahTP.innerHTML += `
+            <div class="col-4 col-md-3">
+                <input type="${type}" ${attrs} class="form-control form-control-sm tp-input border-info" id="tp${i}" placeholder="TP ${i}">
+            </div>
+        `;
+    }
+    
+    if(isSumatif) {
+        grupCatatan.classList.add("hidden");
+    } else {
+        grupCatatan.classList.remove("hidden");
+    }
+}
+
+if(inputJumlahTP && jenisPenilaian) {
+    inputJumlahTP.addEventListener("change", renderTPInputs);
+    jenisPenilaian.addEventListener("change", renderTPInputs);
+    renderTPInputs(); // Panggil pertama kali
 }
 
 if(filterJenisPenilaian) {
     filterJenisPenilaian.addEventListener("change", muatPenilaian);
 }
 
+// --- SIMPAN / UPDATE DATA ---
 if(formPenilaian) {
     formPenilaian.addEventListener("submit", async (e) => {
         e.preventDefault();
-        document.getElementById("btnSimpanNilai").innerText = "Menyimpan...";
+        const btnSimpan = document.getElementById("btnSimpanNilai");
+        btnSimpan.innerText = "Menyimpan...";
         
         const jenis = jenisPenilaian.value;
+        const jumlahTP = parseInt(inputJumlahTP.value) || 7;
+        
         const data = {
             kelas: document.getElementById("nilaiKelas").value,
             nama: nilaiNama.options[nilaiNama.selectedIndex].text,
             gender: document.getElementById("nilaiGender").value,
             jenis: jenis,
-            tp1: document.getElementById("tp1").value,
-            tp2: document.getElementById("tp2").value,
-            tp3: document.getElementById("tp3").value,
-            tp4: document.getElementById("tp4").value,
-            tp5: document.getElementById("tp5").value,
-            tp6: document.getElementById("tp6").value,
-            tp7: document.getElementById("tp7").value,
+            jumlahTP: jumlahTP,
             timestamp: serverTimestamp()
         };
 
+        // Ambil nilai dari TP yang digenerate
+        for(let i=1; i<=jumlahTP; i++) {
+            data[`tp${i}`] = document.getElementById(`tp${i}`) ? document.getElementById(`tp${i}`).value : "";
+        }
+
         if(jenis === "Formatif") {
             let terkumpul = 0;
-            tpInputs.forEach(input => { if(input.value.trim() !== "") terkumpul++; });
+            for(let i=1; i<=jumlahTP; i++) { if(data[`tp${i}`].trim() !== "") terkumpul++; }
             data.jumlahTerkumpul = terkumpul;
             data.catatan = document.getElementById("nilaiCatatan").value;
         } else {
             let total = 0, count = 0;
-            tpInputs.forEach(input => { 
-                let val = parseFloat(input.value);
+            for(let i=1; i<=jumlahTP; i++) { 
+                let val = parseFloat(data[`tp${i}`]);
                 if(!isNaN(val)) { total += val; count++; } 
-            });
+            }
             data.rataRata = count > 0 ? (total / count).toFixed(1) : 0; 
         }
 
         try {
-            await addDoc(collection(db, "penilaian_siswa"), data);
-            alert("Data Penilaian berhasil disimpan!");
+            const editId = document.getElementById("editDocId").value;
+            if(editId) {
+                // Proses Edit/Update
+                await updateDoc(doc(db, "penilaian_siswa", editId), data);
+                alert("Data Penilaian berhasil diperbarui!");
+            } else {
+                // Proses Tambah Baru
+                await addDoc(collection(db, "penilaian_siswa"), data);
+                alert("Data Penilaian berhasil disimpan!");
+            }
+            
+            // Reset Form kembali ke mode Tambah
             formPenilaian.reset();
-            if(jenis === "Sumatif") grupCatatan.classList.add("hidden");
+            document.getElementById("editDocId").value = "";
+            btnSimpan.innerText = "Simpan Penilaian";
+            btnSimpan.classList.replace("btn-warning", "btn-info");
             nilaiNama.innerHTML = '<option value="">-- Pilih Kelas Dulu --</option>';
+            renderTPInputs();
             muatPenilaian();
         } catch (error) {
             alert("Gagal menyimpan data: " + error.message);
+            btnSimpan.innerText = "Coba Lagi";
         }
-        document.getElementById("btnSimpanNilai").innerText = "Simpan Penilaian";
     });
 }
+
+// --- TABEL DAN TOMBOL AKSI ---
+let datasetPenilaian = []; // State untuk menampung data sementara
 
 async function muatPenilaian() {
     const tabelBody = document.getElementById("tabelNilaiData");
@@ -298,39 +327,126 @@ async function muatPenilaian() {
     if(!tabelBody) return;
     
     const jenisDitampilkan = document.getElementById("filterJenisPenilaian").value;
-    
-    if(jenisDitampilkan === "Formatif") {
-        headerTabel.innerHTML = `<tr><th>Nama</th><th>L/P</th><th>Kelas</th><th>TP1</th><th>TP2</th><th>TP3</th><th>TP4</th><th>TP5</th><th>TP6</th><th>TP7</th><th>Jml</th><th>Catatan</th></tr>`;
-    } else {
-        headerTabel.innerHTML = `<tr><th>Nama</th><th>L/P</th><th>Kelas</th><th>TP1</th><th>TP2</th><th>TP3</th><th>TP4</th><th>TP5</th><th>TP6</th><th>TP7</th><th>Rata-rata</th></tr>`;
-    }
-
-    tabelBody.innerHTML = `<tr><td colspan='12' class='text-center'>Memuat data...</td></tr>`;
+    tabelBody.innerHTML = `<tr><td colspan='15' class='text-center'>Memuat data...</td></tr>`;
     
     try {
         const q = query(collection(db, "penilaian_siswa"), orderBy("timestamp", "desc"));
         const querySnapshot = await getDocs(q);
         
-        tabelBody.innerHTML = "";
+        datasetPenilaian = [];
+        let maxTP = 1; // Mencari jumlah TP terbanyak untuk membuat header
         let hasData = false;
+        
         querySnapshot.forEach((doc) => {
             const d = doc.data();
             if(d.jenis === jenisDitampilkan) {
                 hasData = true;
-                let rowHTML = `<td>${d.nama}</td><td>${d.gender}</td><td><small>${d.kelas}</small></td>`;
-                rowHTML += `<td>${d.tp1||"-"}</td><td>${d.tp2||"-"}</td><td>${d.tp3||"-"}</td><td>${d.tp4||"-"}</td><td>${d.tp5||"-"}</td><td>${d.tp6||"-"}</td><td>${d.tp7||"-"}</td>`;
-                
-                if(jenisDitampilkan === "Formatif") {
-                    rowHTML += `<td><b>${d.jumlahTerkumpul||0}</b></td><td><small>${d.catatan||"-"}</small></td>`;
-                } else {
-                    rowHTML += `<td><b class="text-primary">${d.rataRata||0}</b></td>`;
-                }
-                tabelBody.innerHTML += `<tr>${rowHTML}</tr>`;
+                d.id = doc.id; // Simpan ID untuk fungsi Hapus/Edit
+                datasetPenilaian.push(d);
+                if(d.jumlahTP > maxTP) maxTP = d.jumlahTP;
             }
         });
 
-        if(!hasData) tabelBody.innerHTML = `<tr><td colspan='12' class='text-center'>Belum ada data ${jenisDitampilkan}</td></tr>`;
+        // Buat Header Dinamis
+        let headerHTML = `<tr><th>Nama</th><th>L/P</th><th>Kelas</th>`;
+        for(let i=1; i<=maxTP; i++) headerHTML += `<th>TP${i}</th>`;
+        if(jenisDitampilkan === "Formatif") {
+            headerHTML += `<th>Jml</th><th>Catatan</th><th>Aksi</th></tr>`;
+        } else {
+            headerHTML += `<th>Rata-rata</th><th>Aksi</th></tr>`;
+        }
+        headerTabel.innerHTML = headerHTML;
+
+        // Buat Baris Tabel
+        tabelBody.innerHTML = "";
+        if(!hasData) {
+            tabelBody.innerHTML = `<tr><td colspan='15' class='text-center'>Belum ada data ${jenisDitampilkan}</td></tr>`;
+            return;
+        }
+
+        datasetPenilaian.forEach(d => {
+            let rowHTML = `<td><div class="text-start text-nowrap">${d.nama}</div></td><td>${d.gender}</td><td><small class="text-nowrap">${d.kelas}</small></td>`;
+            for(let i=1; i<=maxTP; i++) {
+                rowHTML += `<td>${d[`tp${i}`] || "-"}</td>`;
+            }
+            if(jenisDitampilkan === "Formatif") {
+                rowHTML += `<td><b>${d.jumlahTerkumpul||0}</b></td><td><small>${d.catatan||"-"}</small></td>`;
+            } else {
+                rowHTML += `<td><b class="text-info">${d.rataRata||0}</b></td>`;
+            }
+            // Tambahkan Tombol Edit dan Hapus
+            rowHTML += `
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-warning btn-edit text-dark fw-bold" data-id="${d.id}">Edit</button>
+                        <button class="btn btn-danger btn-hapus" data-id="${d.id}">Hapus</button>
+                    </div>
+                </td>
+            `;
+            tabelBody.innerHTML += `<tr>${rowHTML}</tr>`;
+        });
     } catch (error) {
-        tabelBody.innerHTML = `<tr><td colspan='12' class='text-center text-danger'>Gagal memuat: ${error.message}</td></tr>`;
+        tabelBody.innerHTML = `<tr><td colspan='15' class='text-center text-danger'>Gagal memuat: ${error.message}</td></tr>`;
     }
+}
+
+// --- EVENT DELEGATION UNTUK TOMBOL EDIT & HAPUS ---
+const tabelBodyPenilaian = document.getElementById("tabelNilaiData");
+if(tabelBodyPenilaian) {
+    tabelBodyPenilaian.addEventListener("click", async (e) => {
+        // Jika Klik Tombol Hapus
+        if(e.target.classList.contains("btn-hapus")) {
+            const id = e.target.dataset.id;
+            if(confirm("Apakah Bapak yakin ingin menghapus data ini?")) {
+                e.target.innerText = "Menghapus...";
+                await deleteDoc(doc(db, "penilaian_siswa", id));
+                muatPenilaian();
+            }
+        }
+        
+        // Jika Klik Tombol Edit
+        if(e.target.classList.contains("btn-edit")) {
+            const id = e.target.dataset.id;
+            const dataEdit = datasetPenilaian.find(d => d.id === id);
+            if(dataEdit) {
+                // 1. Set ID ke form tersembunyi
+                document.getElementById("editDocId").value = id;
+                
+                // 2. Isi Kelas & pancing dropdown nama agar muncul
+                document.getElementById("jenisPenilaian").value = dataEdit.jenis;
+                document.getElementById("nilaiKelas").value = dataEdit.kelas;
+                document.getElementById("nilaiKelas").dispatchEvent(new Event('change'));
+                
+                // 3. Cari dan set index Nama
+                const options = Array.from(document.getElementById("nilaiNama").options);
+                const opt = options.find(o => o.text === dataEdit.nama);
+                if(opt) document.getElementById("nilaiNama").value = opt.value;
+                document.getElementById("nilaiGender").value = dataEdit.gender;
+                
+                // 4. Set Jumlah TP Dinamis dan pancing input agar muncul
+                document.getElementById("jumlahTP").value = dataEdit.jumlahTP || 7;
+                renderTPInputs();
+                
+                // 5. Isi Nilai per TP
+                for(let i=1; i<=(dataEdit.jumlahTP || 7); i++) {
+                    if(document.getElementById(`tp${i}`)) {
+                        document.getElementById(`tp${i}`).value = dataEdit[`tp${i}`] || "";
+                    }
+                }
+                
+                // 6. Isi Catatan jika ada
+                if(dataEdit.jenis === "Formatif") {
+                    document.getElementById("nilaiCatatan").value = dataEdit.catatan || "";
+                }
+                
+                // 7. Ubah Tampilan Tombol Submit
+                const btnSimpan = document.getElementById("btnSimpanNilai");
+                btnSimpan.innerText = "Update Penilaian";
+                btnSimpan.classList.replace("btn-info", "btn-warning");
+                
+                // 8. Gulir layar ke atas secara otomatis
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
 }
