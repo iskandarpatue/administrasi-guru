@@ -1,31 +1,120 @@
-/* style.css */
+/* Import Font Google: Poppins untuk kesan Modern & Rapi */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 body {
-    background-color: #f4f7f6;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Poppins', sans-serif;
+    background-color: #f4f7f6; /* Warna latar abu-abu sangat lembut */
+    color: #2d3436;
 }
 
-.navbar-brand {
-    font-weight: bold;
-    letter-spacing: 0.5px;
-}
-
-.card {
-    border: none;
-    border-radius: 10px;
-    transition: transform 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-}
-
-/* Class pembantu untuk menyembunyikan elemen */
+/* --- KELAS PENTING UNTUK JAVASCRIPT --- */
 .hidden {
     display: none !important;
 }
 
-/* Tampilan khusus tabel di HP agar bisa di-scroll ke samping */
-.table-responsive {
-    border-radius: 10px;
+/* --- DESAIN NAVBAR (MENU ATAS) --- */
+.navbar {
+    background: linear-gradient(135deg, #0984e3 0%, #00cec9 100%) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+}
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* --- DESAIN CARD (KOTAK KONTEN) --- */
+.card {
+    border: none !important;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     overflow: hidden;
+}
+
+/* Efek melayang saat kursor diarahkan ke Card Dashboard */
+#dashboardSection .card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #f1f2f6;
+    padding: 1.2rem 1.5rem;
+}
+
+/* --- DESAIN INPUT & FORM --- */
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid #dfe4ea;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #74b9ff;
+    box-shadow: 0 0 0 0.25rem rgba(116, 185, 255, 0.25);
+}
+
+/* --- DESAIN TOMBOL --- */
+.btn {
+    border-radius: 10px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: all 0.3s ease;
+    border: none;
+}
+.btn-primary { background: linear-gradient(135deg, #0984e3, #74b9ff); color: white; }
+.btn-primary:hover { background: linear-gradient(135deg, #0773c5, #0984e3); transform: scale(1.02); }
+
+.btn-warning { background: linear-gradient(135deg, #fdcb6e, #ffeaa7); color: #2d3436; }
+.btn-warning:hover { background: linear-gradient(135deg, #e1b15c, #fdcb6e); transform: scale(1.02); }
+
+.btn-success { background: linear-gradient(135deg, #00b894, #55efc4); color: white; }
+.btn-success:hover { background: linear-gradient(135deg, #009f80, #00b894); transform: scale(1.02); }
+
+.btn-info { background: linear-gradient(135deg, #00cec9, #81ecec); color: white; }
+.btn-info:hover { background: linear-gradient(135deg, #00b3a6, #00cec9); transform: scale(1.02); }
+
+/* --- DESAIN TABEL --- */
+.table-responsive {
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.02);
+    background: white;
+}
+.table { margin-bottom: 0; }
+.table thead th {
+    background-color: #f8f9fa;
+    color: #2d3436;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dfe4ea;
+    padding: 1rem;
+}
+.table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f2f6;
+}
+
+/* --- KOTAK LOGIN KHUSUS --- */
+.login-wrapper {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-box {
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+}
+.login-icon {
+    font-size: 3rem;
+    color: #0984e3;
+    margin-bottom: 1rem;
 }
