@@ -1,5 +1,5 @@
 // ======================================================
-// app.js (KODE LENGKAP - SMAN 1 BATUDAA PANTAI)
+// app.js (KODE LENGKAP - JURNAL, PERANGKAT, & PENILAIAN)
 // ======================================================
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
@@ -29,7 +29,6 @@ const db = getFirestore(app);
 // ==========================================
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        // Jika User sudah Login, tampilkan dashboard & konten
         if(document.getElementById("loginSection")) {
             document.getElementById("loginSection").classList.add("hidden");
             document.getElementById("dashboardSection").classList.remove("hidden");
@@ -37,12 +36,12 @@ onAuthStateChanged(auth, (user) => {
         }
         if(document.getElementById("kontenJurnal")) document.getElementById("kontenJurnal").classList.remove("hidden");
         if(document.getElementById("kontenPerangkat")) document.getElementById("kontenPerangkat").classList.remove("hidden");
+        if(document.getElementById("kontenPenilaian")) document.getElementById("kontenPenilaian").classList.remove("hidden");
         
-        // Panggil fungsi muat data jika tabelnya ada di halaman tersebut
         if(document.getElementById("tabelJurnalData")) muatJurnal();
         if(document.getElementById("listPerangkat")) muatPerangkat();
+        if(document.getElementById("tabelNilaiData")) muatPenilaian();
     } else {
-        // Jika Belum Login, lempar kembali ke halaman index (login)
         if(!window.location.pathname.endsWith("index.html") && window.location.pathname !== "/" && !window.location.pathname.endsWith("administrasi-guru/")) {
             window.location.href = "index.html";
         }
@@ -58,7 +57,7 @@ if(formLogin) {
         
         signInWithEmailAndPassword(auth, email, pass)
             .then(() => alert("Login Berhasil!"))
-            .catch((error) => alert("Login Gagal, periksa email/password Anda. " + error.message));
+            .catch((error) => alert("Login Gagal: " + error.message));
     });
 }
 
@@ -72,14 +71,13 @@ if(btnLogout) {
 }
 
 // ==========================================
-// 3. LOGIKA JURNAL MENGAJAR (VERSI REVISI LENGKAP)
+// 3. LOGIKA JURNAL MENGAJAR 
 // ==========================================
 const formJurnal = document.getElementById("formJurnal");
 if(formJurnal) {
     formJurnal.addEventListener("submit", async (e) => {
         e.preventDefault();
         document.getElementById("btnSimpanJurnal").innerText = "Menyimpan...";
-        
         try {
             await addDoc(collection(db, "jurnal_mengajar"), {
                 tanggal: document.getElementById("jurnalTanggal").value,
@@ -104,31 +102,34 @@ if(formJurnal) {
 
 async function muatJurnal() {
     const tabelBody = document.getElementById("tabelJurnalData");
+    if(!tabelBody) return;
     tabelBody.innerHTML = "<tr><td colspan='8' class='text-center'>Memuat data...</td></tr>";
-    
-    const q = query(collection(db, "jurnal_mengajar"), orderBy("tanggal", "desc"));
-    const querySnapshot = await getDocs(q);
-    
-    tabelBody.innerHTML = "";
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        tabelBody.innerHTML += `
-            <tr>
-                <td>${data.tanggal || "-"}</td>
-                <td>${data.kelas || "-"}</td>
-                <td>${data.mapel || "-"}</td>
-                <td>${data.materi || "-"}</td>
-                <td>${data.keterangan || "-"}</td>
-                <td>${data.kegiatan || "-"}</td>
-                <td>${data.masalah || "-"}</td>
-                <td>${data.tindakLanjut || "-"}</td>
-            </tr>
-        `;
-    });
+    try {
+        const q = query(collection(db, "jurnal_mengajar"), orderBy("tanggal", "desc"));
+        const querySnapshot = await getDocs(q);
+        tabelBody.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            tabelBody.innerHTML += `
+                <tr>
+                    <td>${data.tanggal || "-"}</td>
+                    <td>${data.kelas || "-"}</td>
+                    <td>${data.mapel || "-"}</td>
+                    <td>${data.materi || "-"}</td>
+                    <td>${data.keterangan || "-"}</td>
+                    <td>${data.kegiatan || "-"}</td>
+                    <td>${data.masalah || "-"}</td>
+                    <td>${data.tindakLanjut || "-"}</td>
+                </tr>
+            `;
+        });
+    } catch (e) {
+        tabelBody.innerHTML = "<tr><td colspan='8' class='text-center text-danger'>Gagal memuat data</td></tr>";
+    }
 }
 
 // ==========================================
-// 4. LOGIKA PERANGKAT PEMBELAJARAN (LINK GOOGLE DRIVE)
+// 4. LOGIKA PERANGKAT PEMBELAJARAN (DRIVE)
 // ==========================================
 const formPerangkat = document.getElementById("formPerangkat");
 if(formPerangkat) {
@@ -137,24 +138,20 @@ if(formPerangkat) {
         const namaDokumen = document.getElementById("namaFile").value;
         const linkDrive = document.getElementById("linkDrive").value;
         const btnUpload = document.getElementById("btnUploadFile");
-        
         btnUpload.innerText = "Menyimpan...";
         btnUpload.disabled = true;
-
         try {
             await addDoc(collection(db, "arsip_perangkat"), {
                 nama: namaDokumen,
                 url: linkDrive,
                 timestamp: serverTimestamp()
             });
-            
             alert("Data perangkat berhasil ditambahkan!");
             formPerangkat.reset();
             muatPerangkat();
         } catch (error) {
             alert("Gagal menyimpan data perangkat: " + error.message);
         }
-        
         btnUpload.innerText = "Simpan Data";
         btnUpload.disabled = false;
     });
@@ -162,43 +159,35 @@ if(formPerangkat) {
 
 async function muatPerangkat() {
     const listGrup = document.getElementById("listPerangkat");
+    if(!listGrup) return;
     listGrup.innerHTML = "<li class='list-group-item'>Memuat data...</li>";
-    
-    const q = query(collection(db, "arsip_perangkat"), orderBy("timestamp", "desc"));
-    const querySnapshot = await getDocs(q);
-    
-    listGrup.innerHTML = "";
-    querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        listGrup.innerHTML += `
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                ${data.nama}
-                <a href="${data.url}" target="_blank" class="btn btn-sm btn-outline-success">Buka Dokumen</a>
-            </li>
-        `;
-    });
-}
-// ==========================================
-// 5. LOGIKA PENILAIAN (FIRESTORE)
-// ==========================================
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
-
-// Amankan Halaman & Otomatis Muat Data
-onAuthStateChanged(getAuth(), (user) => {
-    if (user && document.getElementById("kontenPenilaian")) {
-        document.getElementById("kontenPenilaian").classList.remove("hidden");
-        muatPenilaian();
+    try {
+        const q = query(collection(db, "arsip_perangkat"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        listGrup.innerHTML = "";
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            listGrup.innerHTML += `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    ${data.nama}
+                    <a href="${data.url}" target="_blank" class="btn btn-sm btn-outline-success">Buka Dokumen</a>
+                </li>
+            `;
+        });
+    } catch (e) {
+        listGrup.innerHTML = "<li class='list-group-item text-danger'>Gagal memuat data</li>";
     }
-});
+}
 
+// ==========================================
+// 5. LOGIKA PENILAIAN SISWA
+// ==========================================
 const formPenilaian = document.getElementById("formPenilaian");
 const jenisPenilaian = document.getElementById("jenisPenilaian");
 const filterJenisPenilaian = document.getElementById("filterJenisPenilaian");
 const tpInputs = document.querySelectorAll(".tp-input");
 const grupCatatan = document.getElementById("grupCatatan");
 
-// Interaksi Ubah Mode Formatif/Sumatif
 if(jenisPenilaian) {
     jenisPenilaian.addEventListener("change", (e) => {
         if(e.target.value === "Sumatif") {
@@ -211,12 +200,10 @@ if(jenisPenilaian) {
     });
 }
 
-// Filter Tabel
 if(filterJenisPenilaian) {
     filterJenisPenilaian.addEventListener("change", muatPenilaian);
 }
 
-// Simpan Data
 if(formPenilaian) {
     formPenilaian.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -235,7 +222,7 @@ if(formPenilaian) {
             tp5: document.getElementById("tp5").value,
             tp6: document.getElementById("tp6").value,
             tp7: document.getElementById("tp7").value,
-            timestamp: new Date()
+            timestamp: serverTimestamp()
         };
 
         if(jenis === "Formatif") {
@@ -253,11 +240,7 @@ if(formPenilaian) {
         }
 
         try {
-            // Karena kita butuh addDoc dan collection, kita impor manual jika belum ada
-            const { getFirestore, collection, addDoc } = await import("https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js");
-            const db = getFirestore();
             await addDoc(collection(db, "penilaian_siswa"), data);
-            
             alert("Data Penilaian berhasil disimpan!");
             formPenilaian.reset();
             if(jenis === "Sumatif") grupCatatan.classList.add("hidden");
@@ -269,7 +252,6 @@ if(formPenilaian) {
     });
 }
 
-// Muat Tabel Data
 async function muatPenilaian() {
     const tabelBody = document.getElementById("tabelNilaiData");
     const headerTabel = document.getElementById("headerTabelNilai");
@@ -277,7 +259,6 @@ async function muatPenilaian() {
     
     const jenisDitampilkan = document.getElementById("filterJenisPenilaian").value;
     
-    // Ubah Header Sesuai Mode
     if(jenisDitampilkan === "Formatif") {
         headerTabel.innerHTML = `<tr><th>Nama</th><th>L/P</th><th>Kelas</th><th>TP1</th><th>TP2</th><th>TP3</th><th>TP4</th><th>TP5</th><th>TP6</th><th>TP7</th><th>Jml</th><th>Catatan</th></tr>`;
     } else {
@@ -287,15 +268,15 @@ async function muatPenilaian() {
     tabelBody.innerHTML = `<tr><td colspan='12' class='text-center'>Memuat data...</td></tr>`;
     
     try {
-        const { getFirestore, collection, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/10.4.0/firebase-firestore.js");
-        const db = getFirestore();
         const q = query(collection(db, "penilaian_siswa"), orderBy("timestamp", "desc"));
         const querySnapshot = await getDocs(q);
         
         tabelBody.innerHTML = "";
+        let hasData = false;
         querySnapshot.forEach((doc) => {
             const d = doc.data();
             if(d.jenis === jenisDitampilkan) {
+                hasData = true;
                 let rowHTML = `<td>${d.nama}</td><td>${d.gender}</td><td><small>${d.kelas}</small></td>`;
                 rowHTML += `<td>${d.tp1||"-"}</td><td>${d.tp2||"-"}</td><td>${d.tp3||"-"}</td><td>${d.tp4||"-"}</td><td>${d.tp5||"-"}</td><td>${d.tp6||"-"}</td><td>${d.tp7||"-"}</td>`;
                 
@@ -308,7 +289,7 @@ async function muatPenilaian() {
             }
         });
 
-        if(tabelBody.innerHTML === "") tabelBody.innerHTML = `<tr><td colspan='12' class='text-center'>Belum ada data ${jenisDitampilkan}</td></tr>`;
+        if(!hasData) tabelBody.innerHTML = `<tr><td colspan='12' class='text-center'>Belum ada data ${jenisDitampilkan}</td></tr>`;
     } catch (error) {
         tabelBody.innerHTML = `<tr><td colspan='12' class='text-center text-danger'>Gagal memuat: ${error.message}</td></tr>`;
     }
