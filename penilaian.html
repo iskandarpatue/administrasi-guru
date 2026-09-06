@@ -37,14 +37,13 @@
                             <div class="row mb-2">
                                 <div class="col-8">
                                     <label class="form-label text-sm">Nama Peserta Didik</label>
-                                    <input type="text" class="form-control" id="nilaiNama" required>
+                                    <select class="form-select border-primary" id="nilaiNama" required>
+                                        <option value="">-- Pilih Kelas Dulu --</option>
+                                    </select>
                                 </div>
                                 <div class="col-4">
                                     <label class="form-label text-sm">L/P</label>
-                                    <select class="form-select" id="nilaiGender" required>
-                                        <option value="L">L</option>
-                                        <option value="P">P</option>
-                                    </select>
+                                    <input type="text" class="form-control bg-light text-center fw-bold" id="nilaiGender" readonly required>
                                 </div>
                             </div>
                             <div class="mb-3">
