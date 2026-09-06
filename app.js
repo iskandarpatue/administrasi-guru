@@ -180,7 +180,7 @@ async function muatPerangkat() {
 }
 
 // ==========================================
-// 5. LOGIKA PENILAIAN SISWA
+// 5. LOGIKA PENILAIAN SISWA & DATABASE MURID
 // ==========================================
 const formPenilaian = document.getElementById("formPenilaian");
 const jenisPenilaian = document.getElementById("jenisPenilaian");
@@ -200,12 +200,11 @@ const nilaiKelas = document.getElementById("nilaiKelas");
 const nilaiNama = document.getElementById("nilaiNama");
 const nilaiGender = document.getElementById("nilaiGender");
 
-// Event: Saat kelas dipilih, daftar nama otomatis muncul
 if(nilaiKelas && nilaiNama) {
     nilaiKelas.addEventListener("change", (e) => {
         const kelasPilihan = e.target.value;
         nilaiNama.innerHTML = '<option value="">-- Pilih Nama Siswa --</option>';
-        nilaiGender.value = "";
+        if(nilaiGender) nilaiGender.value = "";
         
         if(kelasPilihan && dataMurid[kelasPilihan]) {
             dataMurid[kelasPilihan].forEach((siswa, index) => {
@@ -216,18 +215,18 @@ if(nilaiKelas && nilaiNama) {
         }
     });
 
-    // Event: Saat nama dipilih, L/P otomatis terisi
     nilaiNama.addEventListener("change", (e) => {
         const kelasPilihan = nilaiKelas.value;
         const indexSiswa = e.target.value;
-        if(indexSiswa !== "") {
+        if(indexSiswa !== "" && nilaiGender) {
             nilaiGender.value = dataMurid[kelasPilihan][indexSiswa].gender;
-        } else {
+        } else if(nilaiGender) {
             nilaiGender.value = "";
         }
     });
 }
 // --- AKHIR DATABASE SISWA ---
+
 if(jenisPenilaian) {
     jenisPenilaian.addEventListener("change", (e) => {
         if(e.target.value === "Sumatif") {
@@ -284,6 +283,7 @@ if(formPenilaian) {
             alert("Data Penilaian berhasil disimpan!");
             formPenilaian.reset();
             if(jenis === "Sumatif") grupCatatan.classList.add("hidden");
+            nilaiNama.innerHTML = '<option value="">-- Pilih Kelas Dulu --</option>';
             muatPenilaian();
         } catch (error) {
             alert("Gagal menyimpan data: " + error.message);
