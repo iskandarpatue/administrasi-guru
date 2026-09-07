@@ -82,6 +82,7 @@ if(formJurnal) {
         
         const data = {
             tanggal: document.getElementById("jurnalTanggal").value,
+            waktu: document.getElementById("jurnalWaktu").value, // Tambahan Fitur Waktu
             kelas: document.getElementById("jurnalKelas").value,
             mapel: document.getElementById("jurnalMapel").value,
             materi: document.getElementById("jurnalMateri").value,
@@ -118,17 +119,17 @@ const filterBulanJurnal = document.getElementById("filterBulanJurnal");
 if(filterBulanJurnal) {
     const now = new Date();
     const defaultMonth = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0');
-    filterBulanJurnal.value = defaultMonth; // Set default ke bulan ini
+    filterBulanJurnal.value = defaultMonth; 
     filterBulanJurnal.addEventListener("change", muatJurnal);
 }
 
 async function muatJurnal() {
     const tb = document.getElementById("tabelJurnalData");
     if(!tb) return;
-    tb.innerHTML = "<tr><td colspan='9' class='text-center'>Memuat data...</td></tr>";
+    tb.innerHTML = "<tr><td colspan='10' class='text-center'>Memuat data...</td></tr>";
     
     let bulanPilih = "";
-    if(filterBulanJurnal) bulanPilih = filterBulanJurnal.value; // Format: YYYY-MM
+    if(filterBulanJurnal) bulanPilih = filterBulanJurnal.value; 
 
     try {
         const qs = await getDocs(query(collection(db, "jurnal_mengajar"), orderBy("tanggal", "desc")));
@@ -140,9 +141,8 @@ async function muatJurnal() {
             const d = docSnap.data();
             d.id = docSnap.id;
             
-            // Logika Penyaringan Bulanan
             if(bulanPilih && d.tanggal) {
-                if(d.tanggal.substring(0, 7) !== bulanPilih) return; // Lewati jika beda bulan
+                if(d.tanggal.substring(0, 7) !== bulanPilih) return;
             }
             
             datasetJurnal.push(d);
@@ -151,6 +151,7 @@ async function muatJurnal() {
             tb.innerHTML += `
                 <tr>
                     <td class="text-nowrap text-center fw-bold">${d.tanggal || "-"}</td>
+                    <td class="text-nowrap text-center text-primary fw-bold"><small>${d.waktu || "-"}</small></td>
                     <td class="text-center"><small>${d.kelas || "-"}</small></td>
                     <td class="text-center"><small>${d.mapel || "-"}</small></td>
                     <td><small>${d.materi || "-"}</small></td>
@@ -168,13 +169,12 @@ async function muatJurnal() {
             `;
         });
         
-        if(count === 0) tb.innerHTML = "<tr><td colspan='9' class='text-center'>Tidak ada catatan jurnal di bulan ini.</td></tr>";
+        if(count === 0) tb.innerHTML = "<tr><td colspan='10' class='text-center'>Tidak ada catatan jurnal di bulan ini.</td></tr>";
     } catch (e) { 
-        tb.innerHTML = "<tr><td colspan='9' class='text-center text-danger'>Gagal memuat</td></tr>"; 
+        tb.innerHTML = "<tr><td colspan='10' class='text-center text-danger'>Gagal memuat</td></tr>"; 
     }
 }
 
-// Logika Klik Edit dan Hapus Jurnal
 const tBodyJurnal = document.getElementById("tabelJurnalData");
 if(tBodyJurnal) {
     tBodyJurnal.addEventListener("click", async (e) => {
@@ -190,6 +190,7 @@ if(tBodyJurnal) {
             if(d) {
                 document.getElementById("editJurnalId").value = d.id;
                 document.getElementById("jurnalTanggal").value = d.tanggal || "";
+                document.getElementById("jurnalWaktu").value = d.waktu || ""; // Load Data Waktu
                 document.getElementById("jurnalKelas").value = d.kelas || "";
                 document.getElementById("jurnalMapel").value = d.mapel || "";
                 document.getElementById("jurnalMateri").value = d.materi || "";
@@ -207,12 +208,10 @@ if(tBodyJurnal) {
     });
 }
 
-// Logika Cetak Export (Excel & PDF)
 const btnExpJurnalExcel = document.getElementById("btnExportJurnalExcel");
 if(btnExpJurnalExcel) {
     btnExpJurnalExcel.addEventListener("click", () => { 
         const tc = document.getElementById("tabelExportJurnal").cloneNode(true); 
-        // Hapus kolom tombol aksi sebelum diexport
         tc.querySelectorAll("tr").forEach(r => { const c = r.querySelector(".kolom-aksi-jurnal"); if(c) r.removeChild(c); }); 
         const namaFile = "Rekap_Jurnal_" + (document.getElementById("filterBulanJurnal").value || "Semua") + ".xlsx";
         XLSX.writeFile(XLSX.utils.table_to_book(tc, {sheet: "Jurnal Mengajar"}), namaFile); 
@@ -223,7 +222,7 @@ const btnExpJurnalPDF = document.getElementById("btnExportJurnalPDF");
 if(btnExpJurnalPDF) {
     btnExpJurnalPDF.addEventListener("click", () => {
         const sa = document.querySelectorAll(".kolom-aksi-jurnal"); 
-        sa.forEach(c => c.style.display = "none"); // Sembunyikan tombol
+        sa.forEach(c => c.style.display = "none");
         
         const namaFile = "Rekap_Jurnal_" + (document.getElementById("filterBulanJurnal").value || "Semua") + ".pdf";
         const opt = {
@@ -231,11 +230,11 @@ if(btnExpJurnalPDF) {
             filename: namaFile,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' } // Menggunakan kertas legal karena kolomnya banyak
+            jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' } 
         };
         
         html2pdf().set(opt).from(document.getElementById("areaCetakJurnal")).save().then(() => {
-            sa.forEach(c => c.style.display = ""); // Kembalikan tombol setelah selesai
+            sa.forEach(c => c.style.display = "");
         });
     });
 }
