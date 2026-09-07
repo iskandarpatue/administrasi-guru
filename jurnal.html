@@ -31,13 +31,20 @@
                     </div>
                     <div class="card-body">
                         <form id="formJurnal">
-                            <!-- ID Tersembunyi untuk fitur Edit -->
                             <input type="hidden" id="editJurnalId" value="">
                             
-                            <div class="mb-2">
-                                <label class="form-label text-sm fw-bold">Tanggal</label>
-                                <input type="date" class="form-control border-primary" id="jurnalTanggal" required>
+                            <!-- Kolom Tanggal & Waktu Bersebelahan -->
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <label class="form-label text-sm fw-bold">Tanggal</label>
+                                    <input type="date" class="form-control border-primary px-2" id="jurnalTanggal" required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-sm fw-bold">Waktu/Jam</label>
+                                    <input type="text" class="form-control border-primary px-2" id="jurnalWaktu" placeholder="07.15-08.45" required>
+                                </div>
                             </div>
+                            
                             <div class="mb-2">
                                 <label class="form-label text-sm">Kelas</label>
                                 <select class="form-select border-primary" id="jurnalKelas" required>
@@ -89,7 +96,6 @@
                         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                             <h5 class="mb-0 fw-bold text-primary">Rekap Jurnal Mengajar</h5>
                             
-                            <!-- Kontrol Filter Bulan & Export -->
                             <div class="mt-2 mt-md-0 d-flex gap-2 align-items-center">
                                 <label class="text-sm fw-bold mb-0 text-muted d-none d-md-block">Bulan:</label>
                                 <input type="month" id="filterBulanJurnal" class="form-control form-control-sm border-secondary" style="width: 140px;" title="Pilih Bulan Rekapan">
@@ -103,7 +109,8 @@
                             <table class="table table-bordered table-striped text-sm" style="font-size: 0.8rem;" id="tabelExportJurnal">
                                 <thead class="table-light align-middle text-center">
                                     <tr>
-                                        <th style="min-width: 80px;">Tanggal</th>
+                                        <th style="min-width: 90px;">Tanggal</th>
+                                        <th style="min-width: 80px;">Waktu</th>
                                         <th>Kelas</th>
                                         <th>Mapel</th>
                                         <th>Materi Pokok</th>
@@ -125,7 +132,6 @@
         </div>
     </div>
 
-    <!-- Hubungkan Firebase -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
