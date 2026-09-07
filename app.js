@@ -69,25 +69,175 @@ const btnLogout = document.getElementById("btnLogout");
 if(btnLogout) btnLogout.addEventListener("click", () => signOut(auth).then(() => window.location.href = "index.html"));
 
 // ==========================================
-// 3. JURNAL MENGAJAR (Diringkas)
+// 3. JURNAL MENGAJAR (LENGKAP: CRUD & EXPORT)
 // ==========================================
 const formJurnal = document.getElementById("formJurnal");
-if(formJurnal) formJurnal.addEventListener("submit", async (e) => {
-    e.preventDefault(); document.getElementById("btnSimpanJurnal").innerText = "Menyimpan...";
-    try {
-        await addDoc(collection(db, "jurnal_mengajar"), {
-            tanggal: document.getElementById("jurnalTanggal").value, kelas: document.getElementById("jurnalKelas").value, mapel: document.getElementById("jurnalMapel").value, materi: document.getElementById("jurnalMateri").value, keterangan: document.getElementById("jurnalKeterangan").value, kegiatan: document.getElementById("jurnalKegiatan").value, masalah: document.getElementById("jurnalMasalah").value, tindakLanjut: document.getElementById("jurnalTindakLanjut").value, timestamp: serverTimestamp()
-        }); alert("Jurnal tersimpan!"); formJurnal.reset(); muatJurnal();
-    } catch (e) { alert("Error: " + e.message); }
-    document.getElementById("btnSimpanJurnal").innerText = "Simpan Jurnal";
-});
+let datasetJurnal = []; 
+
+if(formJurnal) {
+    formJurnal.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("btnSimpanJurnal");
+        btn.innerText = "Menyimpan...";
+        
+        const data = {
+            tanggal: document.getElementById("jurnalTanggal").value,
+            kelas: document.getElementById("jurnalKelas").value,
+            mapel: document.getElementById("jurnalMapel").value,
+            materi: document.getElementById("jurnalMateri").value,
+            keterangan: document.getElementById("jurnalKeterangan").value,
+            kegiatan: document.getElementById("jurnalKegiatan").value,
+            masalah: document.getElementById("jurnalMasalah").value,
+            tindakLanjut: document.getElementById("jurnalTindakLanjut").value,
+            timestamp: serverTimestamp()
+        };
+
+        try {
+            const editId = document.getElementById("editJurnalId").value;
+            if(editId) {
+                await updateDoc(doc(db, "jurnal_mengajar", editId), data);
+                alert("Jurnal berhasil diperbarui!");
+            } else {
+                await addDoc(collection(db, "jurnal_mengajar"), data);
+                alert("Jurnal berhasil disimpan!");
+            }
+            formJurnal.reset();
+            document.getElementById("editJurnalId").value = "";
+            btn.innerText = "Simpan Jurnal";
+            btn.classList.replace("btn-warning", "btn-primary");
+            muatJurnal();
+        } catch (error) {
+            alert("Error: " + error.message);
+            btn.innerText = "Coba Lagi";
+        }
+    });
+}
+
+// Fitur Filter Bulan Jurnal
+const filterBulanJurnal = document.getElementById("filterBulanJurnal");
+if(filterBulanJurnal) {
+    const now = new Date();
+    const defaultMonth = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0');
+    filterBulanJurnal.value = defaultMonth; // Set default ke bulan ini
+    filterBulanJurnal.addEventListener("change", muatJurnal);
+}
 
 async function muatJurnal() {
-    const tb = document.getElementById("tabelJurnalData"); if(!tb) return;
+    const tb = document.getElementById("tabelJurnalData");
+    if(!tb) return;
+    tb.innerHTML = "<tr><td colspan='9' class='text-center'>Memuat data...</td></tr>";
+    
+    let bulanPilih = "";
+    if(filterBulanJurnal) bulanPilih = filterBulanJurnal.value; // Format: YYYY-MM
+
     try {
-        const qs = await getDocs(query(collection(db, "jurnal_mengajar"), orderBy("tanggal", "desc"))); tb.innerHTML = "";
-        qs.forEach((doc) => { const d = doc.data(); tb.innerHTML += `<tr><td>${d.tanggal||"-"}</td><td>${d.kelas||"-"}</td><td>${d.mapel||"-"}</td><td>${d.materi||"-"}</td><td>${d.keterangan||"-"}</td><td>${d.kegiatan||"-"}</td><td>${d.masalah||"-"}</td><td>${d.tindakLanjut||"-"}</td></tr>`; });
-    } catch (e) { tb.innerHTML = "<tr><td colspan='8'>Gagal memuat</td></tr>"; }
+        const qs = await getDocs(query(collection(db, "jurnal_mengajar"), orderBy("tanggal", "desc")));
+        tb.innerHTML = "";
+        datasetJurnal = [];
+        let count = 0;
+        
+        qs.forEach((docSnap) => {
+            const d = docSnap.data();
+            d.id = docSnap.id;
+            
+            // Logika Penyaringan Bulanan
+            if(bulanPilih && d.tanggal) {
+                if(d.tanggal.substring(0, 7) !== bulanPilih) return; // Lewati jika beda bulan
+            }
+            
+            datasetJurnal.push(d);
+            count++;
+            
+            tb.innerHTML += `
+                <tr>
+                    <td class="text-nowrap text-center fw-bold">${d.tanggal || "-"}</td>
+                    <td class="text-center"><small>${d.kelas || "-"}</small></td>
+                    <td class="text-center"><small>${d.mapel || "-"}</small></td>
+                    <td><small>${d.materi || "-"}</small></td>
+                    <td><small>${d.keterangan || "-"}</small></td>
+                    <td><small>${d.kegiatan || "-"}</small></td>
+                    <td><small>${d.masalah || "-"}</small></td>
+                    <td><small>${d.tindakLanjut || "-"}</small></td>
+                    <td class="kolom-aksi-jurnal text-center">
+                        <div class="btn-group-vertical btn-group-sm gap-1 w-100">
+                            <button class="btn btn-warning btn-edit-jurnal text-dark fw-bold w-100" data-id="${d.id}">Edit</button>
+                            <button class="btn btn-danger btn-hapus-jurnal w-100" data-id="${d.id}">Hapus</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        if(count === 0) tb.innerHTML = "<tr><td colspan='9' class='text-center'>Tidak ada catatan jurnal di bulan ini.</td></tr>";
+    } catch (e) { 
+        tb.innerHTML = "<tr><td colspan='9' class='text-center text-danger'>Gagal memuat</td></tr>"; 
+    }
+}
+
+// Logika Klik Edit dan Hapus Jurnal
+const tBodyJurnal = document.getElementById("tabelJurnalData");
+if(tBodyJurnal) {
+    tBodyJurnal.addEventListener("click", async (e) => {
+        if(e.target.classList.contains("btn-hapus-jurnal")) {
+            if(confirm("Apakah Bapak yakin ingin menghapus catatan jurnal ini?")) {
+                e.target.innerText = "...";
+                await deleteDoc(doc(db, "jurnal_mengajar", e.target.dataset.id));
+                muatJurnal();
+            }
+        }
+        if(e.target.classList.contains("btn-edit-jurnal")) {
+            const d = datasetJurnal.find(x => x.id === e.target.dataset.id);
+            if(d) {
+                document.getElementById("editJurnalId").value = d.id;
+                document.getElementById("jurnalTanggal").value = d.tanggal || "";
+                document.getElementById("jurnalKelas").value = d.kelas || "";
+                document.getElementById("jurnalMapel").value = d.mapel || "";
+                document.getElementById("jurnalMateri").value = d.materi || "";
+                document.getElementById("jurnalKeterangan").value = d.keterangan || "";
+                document.getElementById("jurnalKegiatan").value = d.kegiatan || "";
+                document.getElementById("jurnalMasalah").value = d.masalah || "";
+                document.getElementById("jurnalTindakLanjut").value = d.tindakLanjut || "";
+                
+                const btn = document.getElementById("btnSimpanJurnal");
+                btn.innerText = "Update Jurnal";
+                btn.classList.replace("btn-primary", "btn-warning");
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
+}
+
+// Logika Cetak Export (Excel & PDF)
+const btnExpJurnalExcel = document.getElementById("btnExportJurnalExcel");
+if(btnExpJurnalExcel) {
+    btnExpJurnalExcel.addEventListener("click", () => { 
+        const tc = document.getElementById("tabelExportJurnal").cloneNode(true); 
+        // Hapus kolom tombol aksi sebelum diexport
+        tc.querySelectorAll("tr").forEach(r => { const c = r.querySelector(".kolom-aksi-jurnal"); if(c) r.removeChild(c); }); 
+        const namaFile = "Rekap_Jurnal_" + (document.getElementById("filterBulanJurnal").value || "Semua") + ".xlsx";
+        XLSX.writeFile(XLSX.utils.table_to_book(tc, {sheet: "Jurnal Mengajar"}), namaFile); 
+    });
+}
+
+const btnExpJurnalPDF = document.getElementById("btnExportJurnalPDF");
+if(btnExpJurnalPDF) {
+    btnExpJurnalPDF.addEventListener("click", () => {
+        const sa = document.querySelectorAll(".kolom-aksi-jurnal"); 
+        sa.forEach(c => c.style.display = "none"); // Sembunyikan tombol
+        
+        const namaFile = "Rekap_Jurnal_" + (document.getElementById("filterBulanJurnal").value || "Semua") + ".pdf";
+        const opt = {
+            margin: 0.3,
+            filename: namaFile,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'legal', orientation: 'landscape' } // Menggunakan kertas legal karena kolomnya banyak
+        };
+        
+        html2pdf().set(opt).from(document.getElementById("areaCetakJurnal")).save().then(() => {
+            sa.forEach(c => c.style.display = ""); // Kembalikan tombol setelah selesai
+        });
+    });
 }
 
 // ==========================================
